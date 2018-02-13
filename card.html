@@ -1,0 +1,39 @@
+<html>
+<head>
+	<script src="jquery-3.3.1.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/cardstyle.css">
+</head>
+<body>
+	<div id=cardTitle>Title</div>
+	<div id=cardCategory>Category</div>
+	<div id=nextCardButton></div>
+</body>
+</html>
+
+<script>
+	var deck = new Array();
+	var deck_index = 0;
+	
+	deck = [
+			{title:"Jurassic Park", category:"Movie"},
+			{title:"Fresh Prince of Bel Air", category:"TV"},
+			{title:"Mario Odyssey", category:"Game"},
+			{title:"Monalisa", category:"Art"},
+			{title:"Book of Mormon", category:"Play/Musical"},
+			];
+
+	$('#cardTitle').html(deck[deck_index].title);
+	$('#cardCategory').html(deck[deck_index].category);
+
+	$('#nextCardButton').dblclick(function() {
+		deck_index = deck_index + 1;
+		if (deck_index >= deck.length) {
+			$('#cardTitle').html("Deck is Empty!");
+			$('#cardCategory').html("");
+		}
+		else {
+			$('#cardTitle').html(deck[deck_index].title);
+			$('#cardCategory').html(deck[deck_index].category);
+		}
+	});
+</script>

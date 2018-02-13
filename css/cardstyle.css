@@ -1,0 +1,16 @@
+#cardTitle {
+	font-size:40px;
+	text-align:center;
+}
+
+#cardCategory {
+	text-align:center;
+}
+
+#nextCardButton {
+	position: fixed;
+    top: 0;
+    right: 0;
+	height: 200px;
+	width: 100px;
+}
