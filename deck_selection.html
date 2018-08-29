@@ -1,0 +1,32 @@
+<html>
+<head>
+	<script src="jquery-3.3.1.min.js"></script>
+	<script src="data/english.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/cardstyle.css">
+</head>
+<body>
+	<div id=cardTableDiv>
+		<table id=cardTable>
+			<tr>
+				<th>Title</th>
+				<th>Category</th>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
+
+<script>
+	var deck = new Array();	
+	deck = english_data;
+
+	$('#cardTable tr').not(':first').remove();
+
+	var html = '';
+
+	for(var i = 0; i < deck.length; i++)
+				html += '<tr><td>' + deck[i].title + 
+						'</td><td>' + deck[i].category + '</td></tr>';
+
+	$('#cardTable tr').first().after(html);
+</script>

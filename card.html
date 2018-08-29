@@ -1,6 +1,7 @@
 <html>
 <head>
 	<script src="jquery-3.3.1.min.js"></script>
+	<script src="data/english.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/cardstyle.css">
 </head>
 <body>
@@ -11,16 +12,11 @@
 </html>
 
 <script>
+$(function () {
 	var deck = new Array();
 	var deck_index = 0;
 	
-	deck = [
-			{title:"Jurassic Park", category:"Movie"},
-			{title:"Fresh Prince of Bel Air", category:"TV"},
-			{title:"Mario Odyssey", category:"Game"},
-			{title:"Monalisa", category:"Art"},
-			{title:"Book of Mormon", category:"Play/Musical"},
-			];
+	deck = english_data;
 
 	$('#cardTitle').html(deck[deck_index].title);
 	$('#cardCategory').html(deck[deck_index].category);
@@ -36,4 +32,5 @@
 			$('#cardCategory').html(deck[deck_index].category);
 		}
 	});
+});
 </script>
