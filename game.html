@@ -1,0 +1,41 @@
+<html>
+	<head>
+		<script src="jquery-3.3.1.min.js"></script>
+	</head>
+	<body>
+
+	</body>
+</html>
+
+<script>
+function makeRequest(url, type, input_data) {
+	var api_base_url = 'http://localhost:8888/'
+
+	if (type == 'POST') {
+		$.post(api_base_url + url, input_data, function(data){
+			console.log('POST');
+			console.log(data)
+		});
+	}
+	else {
+		$.get(api_base_url + url, function (data) {
+			console.log('GET');
+			console.log(data);
+		});
+	}
+}
+
+$(function () {
+	makeRequest("generateroom", "GET", {});
+	makeRequest("joinroom", "POST", '{"nickname": "christopher", "code": "XX"}');
+	makeRequest("joinroom", "POST", '{"nickname": "ahmed", "code": "XX"}');
+	makeRequest("joinroom", "POST", '{"nickname": "erica", "code": "XX"}');
+	makeRequest("joinroom", "POST", '{"nickname": "fernando", "code": "XX"}');
+	makeRequest('submitdeck', "POST", '{"nickname": "ahmed", "deck": [{"title": "Jurassic Park"}]}');
+	makeRequest('submitdeck', "POST", '{"nickname": "christopher", "deck": [{"title": "Jurassic Park"}]}');
+	makeRequest('submitdeck', "POST", '{"nickname": "erica", "deck": [{"title": "Jurassic Park"}]}');
+	makeRequest('submitdeck', "POST", '{"nickname": "fernando", "deck": [{"title": "Jurassic Park"}]}');
+	makeRequest('startgame', "GET", {});
+	makeRequest('startround', "GET", {});
+});
+</script>
