@@ -42,7 +42,7 @@ class RoomGenerationHandler(BaseHandler):
 			isRoomOpen = True
 
 		print('Room ' + room_code + ' Created')
-		self.write('The Room Code is: ' + str(room_code))
+		self.write(json.dumps({'room_code': room_code}))
 
 class JoinRoomHandler(BaseHandler):
 	def post(self):
@@ -59,13 +59,17 @@ class JoinRoomHandler(BaseHandler):
 				players[json_obj['nickname']] = {}
 
 				print(json_obj['nickname'] + " joined!")
-				self.write('SUCCESS!')
+				self.write(json.dumps({'status': 'success',
+									   'message': 'Joined the room.'}))
 
 				# redirect player
 			else:
-				self.write('Nickname ' + json_obj['nickname'] + ' is already taken.')
-
-		self.write('Data: ' + str(json_obj))
+				#self.write('Nickname ' + json_obj['nickname'] + ' is already taken.')
+				self.write(json.dumps({'status': 'failed',
+									   'message': 'Nickname already taken.'}))
+		else:
+			self.write(json.dumps({'status': 'failed',
+								   'message': 'Room is closed.'}))
 
 class SubmitDeckHandler(BaseHandler):
 	def post(self):
@@ -73,7 +77,8 @@ class SubmitDeckHandler(BaseHandler):
 		global players
 
 		if not isRoomOpen:
-			self.write('Game is not in setup')
+			self.write(json.dumps({'status': 'failed',
+								   'message': 'Game is not in setup.'}))		
 		else:
 			json_obj = json.loads(self.request.body)
 
@@ -81,7 +86,8 @@ class SubmitDeckHandler(BaseHandler):
 
 			print('Player ' + str(json_obj['nickname']) + " submitted deck: " + str(json_obj['deck']))
 
-			self.write('Player ' + str(json_obj['nickname']) + " submitted deck: " + str(json_obj['deck']))
+			self.write(json.dumps({'status': 'success',
+								   'message': 'Submitted deck.'}))
 
 class StartGameHandler(BaseHandler):
 	def get(self):
@@ -141,9 +147,16 @@ class ListCurrentPlayersHandler(BaseHandler):
 	def get(self):
 		global players
 
-		player_list = players.keys()
+		result = []
 
-		self.write(str(player_list))
+		player_list = players.keys()
+		for key in players:
+			if 'deck' not in players[key]:
+				result.append({"player": key, "ready": False})
+			else:
+				result.append({"player": key, "ready": True})
+
+		self.write(json.dumps(result))
 
 class StartRoundHandler(BaseHandler):
 	def get(self):

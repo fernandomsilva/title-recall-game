@@ -1,32 +1,245 @@
 <html>
 	<head>
 		<script src="jquery-3.3.1.min.js"></script>
+		<script src="https://kit.fontawesome.com/a26119ff4e.js" crossorigin="anonymous"></script>
+		<style>
+			.card_selected {
+				background-color: powderblue;
+			}
+		</style>
 	</head>
 	<body>
+		<div id="joinroom_div" name="joinroom_div">
+			<label for="nickname_text">Nickname:</label>
+			<input type="text" id="nickname_text" name="nickname_text"></input> 
+			
+			<br>
+			
+			<button type="button" id="joinroom_button" name="joinroom_button">Join Room</button>
+		</div>
+		<div id="submitdeck_div" name="submitdeck_div" style="display: none; visibility: hidden;">
+			<!-- <label for="decklist_textarea">Deck</label> -->
+			Deck
 
+			<br>
+
+			<label for="new_card_text">Card Title:</label>
+			<input type="text" id="new_card_text" name="new_card_text">
+			<button type="button" id="addcard_button" name="addcard_button"><i class="fas fa-plus-circle"></i></button>
+			<button type="button" id="removecard_button" name="removecard_button"><i class="fas fa-minus-square"></i></button>
+
+			<br>
+
+			<div id="decklist_textarea" name="decklist_textarea" style="border:1px solid black;">
+				<span id="decklist_textarea_line1" name="decklist_textarea_line1" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line2" name="decklist_textarea_line2" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line3" name="decklist_textarea_line3" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line4" name="decklist_textarea_line4" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line5" name="decklist_textarea_line5" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line6" name="decklist_textarea_line6" class="decklist_textarea_line" style="display: block;"></span>
+				<span id="decklist_textarea_line7" name="decklist_textarea_line7" class="decklist_textarea_line" style="display: block;"></span>
+			</div>
+
+			<br>
+
+			<button type="button" id="submitdeck_button" name="submitdeck_button">Submit Deck</button>			
+		</div>
+		<div id="listplayers_div" name="listplayers_div" style="display: none; visibility: hidden;">
+			<table id="playerlist_table" name="playerlist_table">
+				<tr>
+					<th><b>Player</b></th>
+					<th><b>Ready</b></th>
+				</tr>
+			</table>
+		</div>
 	</body>
 </html>
 
 <script>
-function makeRequest(url, type, input_data) {
+var loading = false;
+var my_nick = "";
+var list_of_cards = [];
+var MAX_CARDS_PER_PLAYER = 7;
+
+function makeRequest(url, type, input_data, callback_function) {
 	var api_base_url = 'http://localhost:8888/'
 
 	if (type == 'POST') {
 		$.post(api_base_url + url, input_data, function(data){
 			console.log('POST');
 			console.log(data)
+
+			callback_function(JSON.parse(data));
 		});
 	}
 	else {
 		$.get(api_base_url + url, function (data) {
 			console.log('GET');
 			console.log(data);
+
+			callback_function(JSON.parse(data));
 		});
 	}
 }
 
+$('#joinroom_button').click(function() {
+	var nickname_text = $('#nickname_text').val();
+	console.log('nickname_text: ' + nickname_text);
+
+	if (nickname_text === "") {
+		alert('You must select a nickname.');
+	}
+	else {
+		$('#joinroom_button').attr('disabled', true);
+		$('#nickname_text').attr('disabled', true);
+		my_nick = nickname_text;
+		joinRoom(nickname_text);
+	}
+});
+
+function joinRoom(nickname) {
+	makeRequest("joinroom", "POST", '{"nickname": "' + nickname + '", "code": "XX"}', callback_joinRoom);
+}
+
+function callback_joinRoom(data) {
+	var status = data['status'];
+	var message = data['message'];
+
+	if (status === "failed") {
+		$('#joinroom_button').attr('disabled', false);
+		$('#nickname_text').attr('disabled', false);
+		my_nick = "";
+
+		alert(message);
+	}
+	else {
+		$('#joinroom_div').attr('disabled', true);
+		$('#joinroom_div').attr('display', 'none');
+		$('#joinroom_div').hide();
+
+		alert(message);
+
+		$('#submitdeck_div').attr('style', 'display: block; visibility: visible;');
+	}
+}
+
+$('#new_card_text').keypress(function(e){
+	if (e.which == 13) {
+		$('#addcard_button').trigger("click");
+	}
+});
+
+$('#addcard_button').click(function() {
+	var card_title = $('#new_card_text').val();
+
+	if (card_title === "") {
+		alert("You need a card title to add.");
+	}
+	else {
+		if (list_of_cards.length < MAX_CARDS_PER_PLAYER) {
+			list_of_cards.push(card_title);
+			updateDeckTextArea(false);
+			$('#new_card_text').val("");
+		}
+	}
+});
+
+$('#removecard_button').click(function() {
+	var cards_to_remove = [];
+
+	$(".card_selected").each(function() {
+		cards_to_remove.push($(this).text());
+	});
+
+	for (var i=0; i<cards_to_remove.length; i++) {
+		for (var j=0; j<list_of_cards.length; j++) {
+			if (cards_to_remove[i] === list_of_cards[j]){
+				list_of_cards.splice(j, 1);
+				break;
+			}
+		}
+	}
+
+	updateDeckTextArea(true);
+});
+
+$('#submitdeck_button').click(function(){
+	if (list_of_cards.length < MAX_CARDS_PER_PLAYER) {
+		alert("You need to choose " + MAX_CARDS_PER_PLAYER + " cards.");
+	}
+	else {
+		$('#new_card_text').attr("disabled", true);
+		$('#addcard_button').attr("disabled", true);
+		$('#removecard_button').attr("disabled", true);
+		$('#decklist_textarea').attr("disabled", true);
+		$('#submitdeck_button').attr("disabled", true);
+
+		submitDeck(list_of_cards);
+	}
+});
+
+function submitDeck(cardlist) {
+	var deck = [];
+
+	for (var i=0; i<cardlist.length; i++) {
+		deck.push({"title": cardlist[i]});
+	}
+
+	makeRequest('submitdeck', "POST", '{"nickname": "' + my_nick + '", "deck": ' + JSON.stringify(deck) + '}', callback_submitDeck);
+}
+
+function callback_submitDeck(data) {
+	var status = data['status'];
+	var message = data['message'];
+
+	if (status === "failed") {
+		alert(message);
+	}
+	else {
+		$('#submitdeck_div').attr('disabled', true);
+		$('#submitdeck_div').attr('display', 'none');
+		$('#submitdeck_div').hide();
+
+		alert(message);
+
+		$('#listplayers_div').attr('style', 'display: block; visibility: visible;');
+		populateListOfPlayersDiv();
+		window.setInterval(populateListOfPlayersDiv, 5000);
+	}
+}
+
+$('.decklist_textarea_line').click(function() {
+	$(this).toggleClass("card_selected");
+})
+
+function updateDeckTextArea(unselect) {
+	for (var i=1; i<=list_of_cards.length; i++) {
+		$('#decklist_textarea_line' + i).text(list_of_cards[i-1]);
+		if (unselect) {
+			$('#decklist_textarea_line' + i).toggleClass('card_selected', false);
+		}
+	}
+	for (var j=list_of_cards.length+1; j<=MAX_CARDS_PER_PLAYER; j++) {
+		$('#decklist_textarea_line' + j).text("");
+		$('#decklist_textarea_line' + j).toggleClass('card_selected', false);
+	}
+}
+
+function populateListOfPlayersDiv() {
+	makeRequest('listplayers', "GET", '{}', callback_populateListOfPlayersDiv);
+}
+
+function callback_populateListOfPlayersDiv(data) {
+	$('#playerlist_table').empty();
+	$('#playerlist_table').append("<tr><th><b>Player</b></th><th><b>Ready</b></th></tr>");
+
+	for (player_index in data) {
+		$('#playerlist_table').append("<tr><td>" + data[player_index]["player"] + "</td><td>" + data[player_index]["ready"] + "</td></tr>")
+	}
+}
+
 $(function () {
-	makeRequest("generateroom", "GET", {});
+/*	makeRequest("generateroom", "GET", {});
 	makeRequest("joinroom", "POST", '{"nickname": "christopher", "code": "XX"}');
 	makeRequest("joinroom", "POST", '{"nickname": "ahmed", "code": "XX"}');
 	makeRequest("joinroom", "POST", '{"nickname": "erica", "code": "XX"}');
@@ -37,5 +250,6 @@ $(function () {
 	makeRequest('submitdeck', "POST", '{"nickname": "fernando", "deck": [{"title": "Jurassic Park"}]}');
 	makeRequest('startgame', "GET", {});
 	makeRequest('startround', "GET", {});
+*/
 });
 </script>
