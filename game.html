@@ -6,6 +6,14 @@
 			.card_selected {
 				background-color: powderblue;
 			}
+			.current_player {
+				background-color:blue;
+				color:white;
+			}
+			.ready_player {
+				background-color:#33cc33;
+				color:white;				
+			}
 		</style>
 	</head>
 	<body>
@@ -42,7 +50,7 @@
 
 			<br>
 
-			<button type="button" id="submitdeck_button" name="submitdeck_button">Submit Deck</button>			
+			<button type="button" id="submitdeck_button" name="submitdeck_button">Submit Deck</button>	
 		</div>
 		<div id="listplayers_div" name="listplayers_div" style="display: none; visibility: hidden;">
 			<table id="playerlist_table" name="playerlist_table">
@@ -59,6 +67,7 @@
 					<th><b>Team 2</b></th>
 				</tr>
 			</table>
+			<button type="button" id="readytoplay_button" name="readytoplay_button">Ready</button>
 		</div>		
 	</body>
 </html>
@@ -267,12 +276,26 @@ function callback_populateListOfPlayersDiv(data) {
 	}
 }
 
+$('#readytoplay_button').click(function() {
+	readyToPlay(my_nick);
+	$('#readytoplay_button').attr('disabled', true);
+});
+
+function readyToPlay(nickname) {
+	makeRequest('gamestate', "POST", '{"status": "ready", "nickname": "' + nickname + '"}', callback_readyToPlay);
+}
+
+function callback_readyToPlay(data) {
+}
+
 function populateGameStateDiv() {
 	makeRequest('gamestate', "GET", '{}', callback_populateGameStateDiv);
 }
 
 function callback_populateGameStateDiv(data) {
 	var teams = data["teams"];
+	var current_player = [data["current_team"], data["current_player"]];
+	var ready_player_list = data["ready_player_list"];
 	/*{"teams": teams,
 	"current_team": current_team,
 	"current_player": current_player,
@@ -294,7 +317,16 @@ function callback_populateGameStateDiv(data) {
 		$('#team_table').append("<tr>");
 		for (var j=0; j<Object.keys(teams).length; j++) {
 			if (teams[j.toString()]['members'].length >= i) {
-				$('#team_table').append("<td>" + teams[j.toString()]['members'][i] + "</td>"); //<td>" + data[player_index]["ready"] + "</td></tr>")
+				if (i == current_player[1] && j == current_player[0]) {
+					$('#team_table').append("<td id=\"player_" + i + "" + j + "\" class=\"current_player\">" + teams[j.toString()]['members'][i] + "</td>");
+				}
+				else {
+					$('#team_table').append("<td id=\"player_" + i + "" + j + "\">" + teams[j.toString()]['members'][i] + "</td>");
+				}
+
+				if (ready_player_list.includes(teams[j.toString()]['members'][i])) {
+					$('#player_' + i + '' + j).toggleClass("ready_player");
+				}
 			}
 			else {
 				$('#team_table').append("<td></td>");
