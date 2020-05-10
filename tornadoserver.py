@@ -96,6 +96,7 @@ class StartGameHandler(BaseHandler):
 		global teams
 		global current_player
 		global current_team
+		global current_stage
 
 		if len(players) > 3 and isRoomOpen:
 			not_ready_players = []
@@ -131,6 +132,8 @@ class StartGameHandler(BaseHandler):
 				print('Current Player: ' + str(teams[current_team]['members'][current_player]))
 				print('---------------------')
 
+				current_stage = "game start"
+
 				for key in teams:
 					self.write('Team ' + str(key) + ": " + str(teams[key]['members']))
 				self.write('First Clue giver: ' + str(teams[current_team]['members'][current_player]))
@@ -146,6 +149,7 @@ class StartGameHandler(BaseHandler):
 class ListCurrentPlayersHandler(BaseHandler):
 	def get(self):
 		global players
+		global current_stage
 
 		result = []
 
@@ -155,6 +159,9 @@ class ListCurrentPlayersHandler(BaseHandler):
 				result.append({"player": key, "ready": False})
 			else:
 				result.append({"player": key, "ready": True})
+
+		if current_stage == "game start":
+			result.append({"player": "game is currently starting", "ready": True})
 
 		self.write(json.dumps(result))
 
@@ -240,12 +247,36 @@ class EndTurnHandler(BaseHandler):
 		self.write('End Turn')
 
 class GameStateHandler(BaseHandler):
+	def get(self):
+		global teams
+		global current_team
+		global current_player
+		global ready_player_list
+		global current_stage
+
+		game_state = {"teams": teams,
+					  "current_team": current_team,
+					  "current_player": current_player,
+					  "ready_player_list": ready_player_list,
+					  "current_stage": current_stage}
+
+		self.write(json.dumps(game_state))
+
 	def post(self):
+		global player_list
+		global ready_player_list
+		global current_stage
+
 		json_obj = json.loads(self.request.body)
 
-		print(json_obj)
+		if json_obj['status'] == "ready":
+			ready_player_list.append(json_obj["nickname"])
 
-		self.write('Game State')
+		if len(ready_player_list) == len(player_list):
+			pass
+
+		self.write(json.dumps({'status': 'success',
+								   'message': 'Waiting for all players to be ready.'}))
 
 def make_app():
 	file_root = os.path.dirname(__file__)
@@ -272,10 +303,13 @@ if __name__ == "__main__":
 	players = {}
 	isRoomOpen = False
 	player_list = []
+	ready_player_list = []
 	teams = {}
 	current_player = None
 	current_team = None
+	current_stage = None
 	deck = []
+
 
 	app = make_app()
 	app.listen(8888)

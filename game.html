@@ -52,6 +52,14 @@
 				</tr>
 			</table>
 		</div>
+		<div id="gamestate_div" name="gamestate_div" style="display: none; visibility: hidden;">
+			<table id="team_table" name="team_table">
+				<tr>
+					<th><b>Team 1</b></th>
+					<th><b>Team 2</b></th>
+				</tr>
+			</table>
+		</div>		
 	</body>
 </html>
 
@@ -60,6 +68,7 @@ var loading = false;
 var my_nick = "";
 var list_of_cards = [];
 var MAX_CARDS_PER_PLAYER = 7;
+var const_call_function = null;
 
 function makeRequest(url, type, input_data, callback_function) {
 	var api_base_url = 'http://localhost:8888/'
@@ -204,7 +213,7 @@ function callback_submitDeck(data) {
 
 		$('#listplayers_div').attr('style', 'display: block; visibility: visible;');
 		populateListOfPlayersDiv();
-		window.setInterval(populateListOfPlayersDiv, 5000);
+		const_call_function = window.setInterval(populateListOfPlayersDiv, 5000);
 	}
 }
 
@@ -234,7 +243,64 @@ function callback_populateListOfPlayersDiv(data) {
 	$('#playerlist_table').append("<tr><th><b>Player</b></th><th><b>Ready</b></th></tr>");
 
 	for (player_index in data) {
-		$('#playerlist_table').append("<tr><td>" + data[player_index]["player"] + "</td><td>" + data[player_index]["ready"] + "</td></tr>")
+		if (data[player_index]["player"] !== "game is currently starting") {
+			$('#playerlist_table').append("<tr><td>" + data[player_index]["player"] + "</td><td>" + data[player_index]["ready"] + "</td></tr>")
+		}
+		else {
+			clearInterval(const_call_function);
+
+			$('#listplayers_div').attr('disabled', true);
+			$('#listplayers_div').attr('display', 'none');
+			$('#listplayers_div').hide();
+
+			$('#gamestate_div').attr('style', 'display: block; visibility: visible;');
+
+			window.setInterval(populateGameStateDiv, 1000);
+			/*var seconds_now = (new Date()).getSeconds() % 10;
+			var delay_time = 
+			if (seconds_now > 5) {
+
+			}*/
+			//populateListOfPlayersDiv();
+			//window.setInterval(populateListOfPlayersDiv, 5000);
+		}
+	}
+}
+
+function populateGameStateDiv() {
+	makeRequest('gamestate', "GET", '{}', callback_populateGameStateDiv);
+}
+
+function callback_populateGameStateDiv(data) {
+	var teams = data["teams"];
+	/*{"teams": teams,
+	"current_team": current_team,
+	"current_player": current_player,
+	"ready_player_list": ready_player_list,
+	"current_stage": current_stage}*/
+
+	var number_of_members = 0;
+
+	$('#team_table').empty();
+	$('#team_table').append("<tr><th><b>Team 1</b></th><th><b>Team 2</b></th></tr>");
+
+	for (team_index in teams) {
+		if (teams[team_index]['members'].length > number_of_members) {
+			number_of_members = teams[team_index]['members'].length
+		}
+	}
+
+	for (var i=0; i<number_of_members; i++) {
+		$('#team_table').append("<tr>");
+		for (var j=0; j<Object.keys(teams).length; j++) {
+			if (teams[j.toString()]['members'].length >= i) {
+				$('#team_table').append("<td>" + teams[j.toString()]['members'][i] + "</td>"); //<td>" + data[player_index]["ready"] + "</td></tr>")
+			}
+			else {
+				$('#team_table').append("<td></td>");
+			}
+		}
+		$('#team_table').append("</tr>");
 	}
 }
 
