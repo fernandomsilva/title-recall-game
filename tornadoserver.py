@@ -170,6 +170,12 @@ class StartRoundHandler(BaseHandler):
 		global players
 		global teams
 		global deck
+		global current_stage
+
+		if current_stage != "game start" and current_stage != "round ended":
+			self.write(json.dumps({'status': 'failed',
+								   'message': 'Not ready to start round!'}))
+			return
 
 		deck = []
 
@@ -193,8 +199,11 @@ class StartRoundHandler(BaseHandler):
 
 		print('Deck Size: ' + str(len(deck)))
 
+		current_stage = "round started"
+
 		print('Round Started!')
-		self.write('Round Started!')
+		self.write(json.dumps({'status': 'success',
+								   'message': 'Round started.'}))
 
 class EndRoundHandler(BaseHandler):
 	def get(self):
@@ -212,20 +221,16 @@ class EndRoundHandler(BaseHandler):
 
 class StartTurnHandler(BaseHandler):
 	def get(self):
-		global current_player
-		global current_team
-		global teams
 		global deck
 
-		current_team = (current_team + 1) % (len(teams))
-		if current_team == 0:
-			current_player = (current_player + 1) % (len(teams[current_team]['members']))
+		if current_stage != "round started":
+			self.write(json.dumps({'status': 'failed',
+								   'message': 'Round is not running!'}))
+			return
 
 		random.shuffle(deck)
 
-		print("Next player is " + str(teams[current_team]['members'][current_player]))
-		print("Cards left in the deck: " + str(len(deck)))
-		self.write("Next player is " + str(teams[current_team]['members'][current_player]))
+		self.write(json.dumps({'deck': deck}))
 
 class EndTurnHandler(BaseHandler):
 	def post(self):
@@ -243,7 +248,13 @@ class EndTurnHandler(BaseHandler):
 					deck.remove(deckcard)
 					break
 
+		current_team = (current_team + 1) % (len(teams))
+		if current_team == 0:
+			current_player = (current_player + 1) % (len(teams[current_team]['members']))
+
 		print('End Turn')
+		print("Next player is " + str(teams[current_team]['members'][current_player]))
+		print("Cards left in the deck: " + str(len(deck)))
 		self.write('End Turn')
 
 class GameStateHandler(BaseHandler):

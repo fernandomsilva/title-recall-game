@@ -67,7 +67,8 @@
 					<th><b>Team 2</b></th>
 				</tr>
 			</table>
-			<button type="button" id="readytoplay_button" name="readytoplay_button">Ready</button>
+			<button type="button" id="readytoplay_button" name="readytoplay_button" style="display: none;">Ready</button>
+			<button type="button" id="startturn_button" name="startturn_button" style="display: none;" disabled>Start Turn</button>
 		</div>		
 	</body>
 </html>
@@ -288,14 +289,30 @@ function readyToPlay(nickname) {
 function callback_readyToPlay(data) {
 }
 
+$('#startturn_button').click(function() {
+	$('#startturn_button').attr('disabled', true);
+	$('#startturn_button').attr('style', 'display: none;');
+	startTurn();
+});
+
+function startTurn() {
+	makeRequest('startturn', "GET", '{}', callback_startTurn);
+}
+
+function callback_startTurn(data) {
+}
+
 function populateGameStateDiv() {
 	makeRequest('gamestate', "GET", '{}', callback_populateGameStateDiv);
 }
 
 function callback_populateGameStateDiv(data) {
 	var teams = data["teams"];
+	var total_number_of_players = 0;
 	var current_player = [data["current_team"], data["current_player"]];
+	var current_player_name = teams[current_player[0].toString()]['members'][current_player[1]]
 	var ready_player_list = data["ready_player_list"];
+	var current_stage = data["current_stage"];
 	/*{"teams": teams,
 	"current_team": current_team,
 	"current_player": current_player,
@@ -308,9 +325,20 @@ function callback_populateGameStateDiv(data) {
 	$('#team_table').append("<tr><th><b>Team 1</b></th><th><b>Team 2</b></th></tr>");
 
 	for (team_index in teams) {
+		total_number_of_players = total_number_of_players + teams[team_index]['members'].length;
 		if (teams[team_index]['members'].length > number_of_members) {
 			number_of_members = teams[team_index]['members'].length
 		}
+	}
+
+	if (my_nick	=== current_player_name) {
+		$('#startturn_button').attr('style', 'display: block');
+		if (ready_player_list.length == total_number_of_players - 1 && current_stage === "round started") {
+			$('#startturn_button').attr('disabled', false);
+		}
+	}
+	else {
+		$('#readytoplay_button').attr('style', 'display: block');
 	}
 
 	for (var i=0; i<number_of_members; i++) {
