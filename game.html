@@ -14,6 +14,33 @@
 				background-color:#33cc33;
 				color:white;				
 			}
+			.card_name {
+				position: absolute;
+				top: 10%;
+				left: 3%;
+				font-size: 40px;
+				color: white;
+				vertical-align: middle;
+			}
+			.game_view {
+				position: relative;
+				width: 700px;
+				height: 200px;
+				background-color: #037ffc;
+				text-align: center;
+				vertical-align: middle;
+			}
+			.timer {
+				font-size: 25px;
+				color: yellow;
+			}
+			.next_card_btn {
+				position: relative;
+				top: -200px;
+				left: 700px;
+				width: 200px;
+				height: 200px;
+			}
 		</style>
 	</head>
 	<body>
@@ -61,6 +88,11 @@
 			</table>
 		</div>
 		<div id="gamestate_div" name="gamestate_div" style="display: none; visibility: hidden;">
+			<div id="gameview_div" name="gameview_div" class="game_view" style="display: none;">
+				<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
+				<span id="timer_span" name="timer_span" class="timer">00:00</span>
+			</div>
+			<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn" style="display: none;">Double click for next card</button>
 			<table id="team_table" name="team_table">
 				<tr>
 					<th><b>Team 1</b></th>
@@ -69,7 +101,7 @@
 			</table>
 			<button type="button" id="readytoplay_button" name="readytoplay_button" style="display: none;">Ready</button>
 			<button type="button" id="startturn_button" name="startturn_button" style="display: none;" disabled>Start Turn</button>
-		</div>		
+		</div>	
 	</body>
 </html>
 
@@ -77,8 +109,12 @@
 var loading = false;
 var my_nick = "";
 var list_of_cards = [];
+var deck = [];
+var viewed_cards = [];
+var timer_value = 0;
 var MAX_CARDS_PER_PLAYER = 7;
 var const_call_function = null;
+var timer_call_function = null;
 
 function makeRequest(url, type, input_data, callback_function) {
 	var api_base_url = 'http://localhost:8888/'
@@ -300,6 +336,50 @@ function startTurn() {
 }
 
 function callback_startTurn(data) {
+	deck = data['deck'];
+	viewed_cards = [];
+
+	$('#gameview_div').attr("style", "display: block");
+	$('#cardname_span').attr("style", "display: block");
+	$('#cardname_span').text(deck[viewed_cards.length]['title']);
+	$('#timer_span').attr("style", "display: block");
+	$('#nextcard_button').attr("style", "display: block");
+
+	timer_value = 36;
+	timer_call_function = window.setInterval(timerRun, 1000);
+}
+
+$('#nextcard_button').dblclick(function() {
+	var index = viewed_cards.length;
+	
+	viewed_cards.push(deck[index]);
+
+	if (index < deck.length) {
+		$('#cardname_span').text(deck[viewed_cards.length]['title']);
+	}
+	else {
+		$('#cardname_span').text("--- Deck Empty ---");	
+	}
+});
+
+function timerRun() {
+	timer_value = timer_value - 1;
+
+	if (timer_value < 10) {
+		$('#timer_span').text("00:0" + timer_value.toString());
+	}
+	else {
+		$('#timer_span').text("00:" + timer_value.toString());
+	}
+
+	if (timer_value == 0) {
+		clearInterval(timer_call_function);
+
+		$('#gameview_div').attr("style", "display: none");
+		$('#cardname_span').attr("style", "display: none");
+		$('#timer_span').attr("style", "display: none");
+		$('#nextcard_button').attr("style", "display: none");
+	}
 }
 
 function populateGameStateDiv() {

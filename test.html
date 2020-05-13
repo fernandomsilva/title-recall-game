@@ -1,0 +1,65 @@
+<html>
+	<head>
+		<script src="jquery-3.3.1.min.js"></script>
+		<style>
+			.gamestate_div {
+			}
+			.card_name {
+				position: absolute;
+				top: 10%;
+				left: 3%;
+				font-size: 40px;
+				color: white;
+				vertical-align: middle;
+			}
+			.game_view {
+				position: relative;
+				width: 700px;
+				height: 200px;
+				background-color: #037ffc;
+				text-align: center;
+				vertical-align: middle;
+			}
+			.timer {
+				font-size: 25px;
+				color: yellow;
+			}
+			.next_card_btn {
+				position: relative;
+				top: -200px;
+				left: 700px;
+				width: 200px;
+				height: 200px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="gamestate_div" name="gamestate_div" class="gamestate_div">
+			<div id="gameview_div" name="gameview_div" class="game_view">
+				<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
+				<span id="timer_span" name="timer_span" class="timer">00:00</span>
+			</div>
+			<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn">Double click for next card</button>
+		</div>
+	</body>
+	<script>
+		var timer_value = 36;
+		var const_call_function = null;
+		const_call_function = window.setInterval(timerRun, 1000);
+
+		function timerRun() {
+			timer_value = timer_value - 1;
+
+			if (timer_value < 10) {
+				$('#timer_span').text("00:0" + timer_value.toString());
+			}
+			else {
+				$('#timer_span').text("00:" + timer_value.toString());
+			}
+
+			if (timer_value == 0) {
+				clearInterval(const_call_function);
+			}
+		}
+	</script>
+</html>
