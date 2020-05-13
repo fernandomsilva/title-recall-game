@@ -41,6 +41,9 @@
 				width: 200px;
 				height: 200px;
 			}
+			.clickable_card {
+				display: block;
+			}
 		</style>
 	</head>
 	<body>
@@ -88,6 +91,11 @@
 			</table>
 		</div>
 		<div id="gamestate_div" name="gamestate_div" style="display: none; visibility: hidden;">
+			<div id="viewedcards_textarea" name="viewedcards_textarea" style="border:1px solid black; display: none;">
+			</div>
+			<div id="acquiredcards_textarea" name="acquiredcards_textarea" style="border:1px solid black; display: none;">
+			</div>
+
 			<div id="gameview_div" name="gameview_div" class="game_view" style="display: none;">
 				<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
 				<span id="timer_span" name="timer_span" class="timer">00:00</span>
@@ -337,7 +345,7 @@ function startTurn() {
 
 function callback_startTurn(data) {
 	deck = data['deck'];
-	viewed_cards = [];
+	viewed_cards = [deck[0]];
 
 	$('#gameview_div').attr("style", "display: block");
 	$('#cardname_span').attr("style", "display: block");
@@ -379,8 +387,38 @@ function timerRun() {
 		$('#cardname_span').attr("style", "display: none");
 		$('#timer_span').attr("style", "display: none");
 		$('#nextcard_button').attr("style", "display: none");
+
+		acquiredCards();
 	}
 }
+
+function acquiredCards() {
+	$('#viewedcards_textarea').attr("style", "display:block");
+	$('#acquiredcards_textarea').attr("style", "display:block");
+
+	for (card in viewed_cards) {
+		var title = viewed_cards[card]["title"];
+
+		$('#viewedcards_textarea').append('<span id="card_' + title + '" name="card_' + title + '" class="clickable_card">' + title + '</span>');
+	}
+}
+
+$('.clickable_card').dblclick(function() {
+	var current_div_id = $(this).parent().attr('id');
+	var new_div_id = '';
+	var title = $(this).text();
+
+    $("#" + current_div_id).find($(this)).remove();
+
+    if (current_div_id.includes("viewedcards")) {
+    	new_div_id = 'acquiredcards_textarea';
+    }
+    else {
+    	new_div_id = 'viewedcards_textarea';    	
+    }
+
+    $('#' + new_div_id).append('<span id="card_' + title + '" name="card_' + title + '" class="clickable_card">' + title + '</span>');
+});
 
 function populateGameStateDiv() {
 	makeRequest('gamestate', "GET", '{}', callback_populateGameStateDiv);
