@@ -236,6 +236,8 @@ class EndTurnHandler(BaseHandler):
 	def post(self):
 		global teams
 		global current_team
+		global current_player
+		global ready_player_list
 		global deck
 
 		json_obj = json.loads(self.request.body)
@@ -255,7 +257,8 @@ class EndTurnHandler(BaseHandler):
 		print('End Turn')
 		print("Next player is " + str(teams[current_team]['members'][current_player]))
 		print("Cards left in the deck: " + str(len(deck)))
-		self.write('End Turn')
+		self.write(json.dumps({'status': 'success',
+								   'message': 'Turn ended.'}))
 
 class GameStateHandler(BaseHandler):
 	def get(self):

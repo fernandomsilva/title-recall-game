@@ -44,6 +44,11 @@
 			.clickable_card {
 				display: block;
 			}
+			.viewedcards_block {
+				width: 330px;
+				height: 200px;
+				border: 1px solid black;
+			}
 		</style>
 	</head>
 	<body>
@@ -91,10 +96,25 @@
 			</table>
 		</div>
 		<div id="gamestate_div" name="gamestate_div" style="display: none; visibility: hidden;">
-			<div id="viewedcards_textarea" name="viewedcards_textarea" style="border:1px solid black; display: none;">
-			</div>
-			<div id="acquiredcards_textarea" name="acquiredcards_textarea" style="border:1px solid black; display: none;">
-			</div>
+			<table id="correctguesses_table" name="correctguesses_table" style="width: 700px; display: none">
+				<tr>
+					<td><label>Viewed Cards</label></td>
+					<td><label>Correct Guesses</label></td>
+				</tr>
+				<tr>
+					<td>
+						<div id="viewedcards_textarea" name="viewedcards_textarea" class="viewedcards_block">
+						</div>
+					</td>
+					<td>
+						<div id="acquiredcards_textarea" name="acquiredcards_textarea" class="viewedcards_block">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td><button type="button" id="submitAcquiredCards_button" name="submitAcquiredCards_button">Submit</button></td>
+				</tr>
+			</table>
 
 			<div id="gameview_div" name="gameview_div" class="game_view" style="display: none;">
 				<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
@@ -393,8 +413,9 @@ function timerRun() {
 }
 
 function acquiredCards() {
-	$('#viewedcards_textarea').attr("style", "display:block");
-	$('#acquiredcards_textarea').attr("style", "display:block");
+	//$('#viewedcards_textarea').attr("style", "display:block");
+	//$('#acquiredcards_textarea').attr("style", "display:block");
+	$('#correctguesses_table').attr("style", "display:block; width: 700px;");
 
 	for (card in viewed_cards) {
 		var title = viewed_cards[card]["title"];
@@ -403,12 +424,13 @@ function acquiredCards() {
 	}
 }
 
-$('.clickable_card').dblclick(function() {
-	var current_div_id = $(this).parent().attr('id');
+function cardDoubleClick(element) {
+	var current_div_id = element.parent().attr('id');
 	var new_div_id = '';
-	var title = $(this).text();
+	var title = element.text();
+	var title_parsed = (element.text()).replace(/ /g, "_");
 
-    $("#" + current_div_id).find($(this)).remove();
+    $("#" + current_div_id).find(element).remove();
 
     if (current_div_id.includes("viewedcards")) {
     	new_div_id = 'acquiredcards_textarea';
@@ -417,8 +439,44 @@ $('.clickable_card').dblclick(function() {
     	new_div_id = 'viewedcards_textarea';    	
     }
 
-    $('#' + new_div_id).append('<span id="card_' + title + '" name="card_' + title + '" class="clickable_card">' + title + '</span>');
+    $('#' + new_div_id).append('<span id="card_' + title_parsed + '" name="card_' + title_parsed + '" class="clickable_card">' + title + '</span>');
+}
+
+$('#acquiredcards_textarea').on('dblclick', 'span.clickable_card', function() {
+	cardDoubleClick($(this));
 });
+
+$('#viewedcards_textarea').on('dblclick', 'span.clickable_card', function() {
+	cardDoubleClick($(this));
+});
+
+$('#submitAcquiredCards_button').click(function() {
+	var list_of_spans = $('#acquiredcards_textarea').find('span');
+    var list_of_titles = [];
+
+    $.each(list_of_spans, function(key, value) {
+    	list_of_titles.push($(value).text());
+    });
+
+    var correct_cards = []
+    for (card in deck) {
+    	if (list_of_titles.includes(card['title'])) {
+    		correct_cards.push(card);
+    	}
+    	if (list_of_titles.length == correct_cards.length) {
+    		break;
+    	}
+    }
+
+    endTurn(correct_cards)
+});
+
+function endTurn(correct_cards) {
+	makeRequest('endturn', 'POST', '{"correct": ' + JSON.stringify(correct_cards) + '}', callback_endTurn);
+}
+
+function callback_endTurn(data) {
+}
 
 function populateGameStateDiv() {
 	makeRequest('gamestate', "GET", '{}', callback_populateGameStateDiv);
