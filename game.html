@@ -459,7 +459,8 @@ $('#submitAcquiredCards_button').click(function() {
     });
 
     var correct_cards = []
-    for (card in deck) {
+    for (card_index in deck) {
+    	var card = deck[card_index];
     	if (list_of_titles.includes(card['title'])) {
     		correct_cards.push(card);
     	}
@@ -472,6 +473,7 @@ $('#submitAcquiredCards_button').click(function() {
 });
 
 function endTurn(correct_cards) {
+	$('#correctguesses_table').attr("style", "display:none; width: 700px;");
 	makeRequest('endturn', 'POST', '{"correct": ' + JSON.stringify(correct_cards) + '}', callback_endTurn);
 }
 
@@ -509,12 +511,17 @@ function callback_populateGameStateDiv(data) {
 
 	if (my_nick	=== current_player_name) {
 		$('#startturn_button').attr('style', 'display: block');
+		$('#readytoplay_button').attr('style', 'display: none');
 		if (ready_player_list.length == total_number_of_players - 1 && current_stage === "round started") {
 			$('#startturn_button').attr('disabled', false);
 		}
 	}
 	else {
+		$('#startturn_button').attr('style', 'display: none');
 		$('#readytoplay_button').attr('style', 'display: block');
+		if (!ready_player_list.includes(my_nick) && current_stage === "round started") {
+			$('#readytoplay_button').attr('disabled', false);
+		}
 	}
 
 	for (var i=0; i<number_of_members; i++) {

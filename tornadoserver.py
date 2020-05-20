@@ -222,12 +222,17 @@ class EndRoundHandler(BaseHandler):
 class StartTurnHandler(BaseHandler):
 	def get(self):
 		global deck
+		global ready_player_list
+		global current_stage
 
 		if current_stage != "round started":
 			self.write(json.dumps({'status': 'failed',
 								   'message': 'Round is not running!'}))
 			return
 
+		current_stage = "turn started"
+
+		ready_player_list = [];
 		random.shuffle(deck)
 
 		self.write(json.dumps({'deck': deck}))
@@ -237,7 +242,7 @@ class EndTurnHandler(BaseHandler):
 		global teams
 		global current_team
 		global current_player
-		global ready_player_list
+		global current_stage
 		global deck
 
 		json_obj = json.loads(self.request.body)
@@ -253,6 +258,12 @@ class EndTurnHandler(BaseHandler):
 		current_team = (current_team + 1) % (len(teams))
 		if current_team == 0:
 			current_player = (current_player + 1) % (len(teams[current_team]['members']))
+
+		if len(deck) > 0:
+			current_stage = "round started"
+		else:
+			#end round
+			pass
 
 		print('End Turn')
 		print("Next player is " + str(teams[current_team]['members'][current_player]))
