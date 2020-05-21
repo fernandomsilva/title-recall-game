@@ -129,6 +129,12 @@
 			</table>
 			<button type="button" id="readytoplay_button" name="readytoplay_button" style="display: none;">Ready</button>
 			<button type="button" id="startturn_button" name="startturn_button" style="display: none;" disabled>Start Turn</button>
+			<table id="teamcards_table" name="teamcards_table">
+				<tr>
+					<th><b>Team 1 Cards</b></th>
+					<th><b>Team 2 Cards</b></th>
+				</tr>
+			</table>
 		</div>	
 	</body>
 </html>
@@ -380,10 +386,10 @@ function callback_startTurn(data) {
 $('#nextcard_button').dblclick(function() {
 	var index = viewed_cards.length;
 	
-	viewed_cards.push(deck[index]);
-
 	if (index < deck.length) {
-		$('#cardname_span').text(deck[viewed_cards.length]['title']);
+		viewed_cards.push(deck[index]);
+	
+		$('#cardname_span').text(deck[index]['title']);
 	}
 	else {
 		$('#cardname_span').text("--- Deck Empty ---");	
@@ -498,14 +504,23 @@ function callback_populateGameStateDiv(data) {
 	"current_stage": current_stage}*/
 
 	var number_of_members = 0;
+	var number_of_cards = 0
 
 	$('#team_table').empty();
 	$('#team_table').append("<tr><th><b>Team 1</b></th><th><b>Team 2</b></th></tr>");
 
+	$('#teamcards_table').empty();
+	$('#teamcards_table').append("<tr><th><b>Team 1 Cards</b></th><th><b>Team 2 Cards</b></th></tr>");
+
 	for (team_index in teams) {
 		total_number_of_players = total_number_of_players + teams[team_index]['members'].length;
+
 		if (teams[team_index]['members'].length > number_of_members) {
-			number_of_members = teams[team_index]['members'].length
+			number_of_members = teams[team_index]['members'].length;
+		}
+
+		if (teams[team_index]['acquired_cards'].length > number_of_cards) {
+			number_of_cards = teams[team_index]['acquired_cards'].length;
 		}
 	}
 
@@ -544,6 +559,19 @@ function callback_populateGameStateDiv(data) {
 			}
 		}
 		$('#team_table').append("</tr>");
+	}
+
+	for (var i=0; i<number_of_cards; i++) {
+		$('#teamcards_table').append("<tr>");
+		for (var j=0; j<Object.keys(teams).length; j++) {
+			if (teams[j.toString()]['acquired_cards'].length > i) {
+				$('#teamcards_table').append("<td id=\"card_" + i + "" + j + "\">" + teams[j.toString()]['acquired_cards'][i]['title'] + "</td>");
+			}
+			else {
+				$('#teamcards_table').append("<td></td>");
+			}
+		}
+		$('#teamcards_table').append("</tr>");
 	}
 }
 

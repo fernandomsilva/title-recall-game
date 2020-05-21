@@ -186,7 +186,7 @@ class StartRoundHandler(BaseHandler):
 		cards_to_remove = []
 		for i in range(0, len(deck)-1):
 			for j in range(i+1, len(deck)):
-				if deck[i]['title'] == deck[j]['title']:
+				if deck[i]['title'].upper() == deck[j]['title'].upper():
 					cards_to_remove.append(i)
 					break
 
@@ -208,6 +208,7 @@ class StartRoundHandler(BaseHandler):
 class EndRoundHandler(BaseHandler):
 	def get(self):
 		global teams
+		global current_stage
 
 		for team in teams:
 			teams[team]['score'] += len(teams[team]['acquired_cards'])
@@ -216,8 +217,11 @@ class EndRoundHandler(BaseHandler):
 
 			teams[team]['acquired_cards'] = []
 
-		print('End Round')
-		self.write('End Round')
+		current_stage = "round ended"
+
+		print('Round Ended!')
+		self.write(json.dumps({'status': 'success',
+								   'message': 'Round ended.'}))
 
 class StartTurnHandler(BaseHandler):
 	def get(self):
