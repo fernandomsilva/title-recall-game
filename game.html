@@ -43,6 +43,12 @@
 			}
 			.clickable_card {
 				display: block;
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
 			}
 			.viewedcards_block {
 				width: 330px;
@@ -121,6 +127,12 @@
 				<span id="timer_span" name="timer_span" class="timer">00:00</span>
 			</div>
 			<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn" style="display: none;">Double click for next card</button>
+			<table id="teamscore_table" name="teamscore_table">
+				<tr>
+					<th><b>Score T1</b></th>
+					<th><b>Score T2</b></th>
+				</tr>
+			</table>
 			<table id="team_table" name="team_table">
 				<tr>
 					<th><b>Team 1</b></th>
@@ -149,22 +161,23 @@ var timer_value = 0;
 var MAX_CARDS_PER_PLAYER = 7;
 var const_call_function = null;
 var timer_call_function = null;
+var last_stage = "";
 
 function makeRequest(url, type, input_data, callback_function) {
 	var api_base_url = 'http://localhost:8888/'
 
 	if (type == 'POST') {
 		$.post(api_base_url + url, input_data, function(data){
-			console.log('POST');
-			console.log(data)
+			//console.log('POST');
+			//console.log(data)
 
 			callback_function(JSON.parse(data));
 		});
 	}
 	else {
 		$.get(api_base_url + url, function (data) {
-			console.log('GET');
-			console.log(data);
+			//console.log('GET');
+			//console.log(data);
 
 			callback_function(JSON.parse(data));
 		});
@@ -173,7 +186,7 @@ function makeRequest(url, type, input_data, callback_function) {
 
 $('#joinroom_button').click(function() {
 	var nickname_text = $('#nickname_text').val();
-	console.log('nickname_text: ' + nickname_text);
+	//console.log('nickname_text: ' + nickname_text);
 
 	if (nickname_text === "") {
 		alert('You must select a nickname.');
@@ -375,7 +388,7 @@ function callback_startTurn(data) {
 
 	$('#gameview_div').attr("style", "display: block");
 	$('#cardname_span').attr("style", "display: block");
-	$('#cardname_span').text(deck[viewed_cards.length]['title']);
+	$('#cardname_span').text(deck[0]['title']);
 	$('#timer_span').attr("style", "display: block");
 	$('#nextcard_button').attr("style", "display: block");
 
@@ -512,6 +525,18 @@ function callback_populateGameStateDiv(data) {
 	$('#teamcards_table').empty();
 	$('#teamcards_table').append("<tr><th><b>Team 1 Cards</b></th><th><b>Team 2 Cards</b></th></tr>");
 
+	if (current_stage == "round ended") {
+		if (last_stage != current_stage) {
+			$('#teamscore_table').append("<tr>")
+
+			for (team_index in teams) {
+				$('#teamscore_table').append("<td>" + teams[team_index]["score"].toString() + "</td>");
+			}
+
+			$('#teamscore_table').append("</tr>")
+		}
+	}
+
 	for (team_index in teams) {
 		total_number_of_players = total_number_of_players + teams[team_index]['members'].length;
 
@@ -573,6 +598,8 @@ function callback_populateGameStateDiv(data) {
 		}
 		$('#teamcards_table').append("</tr>");
 	}
+
+	last_stage = current_stage;
 }
 
 $(function () {

@@ -205,21 +205,24 @@ class StartRoundHandler(BaseHandler):
 		self.write(json.dumps({'status': 'success',
 								   'message': 'Round started.'}))
 
+def endRound():
+	global teams
+	global current_stage
+
+	for team in teams:
+		teams[team]['score'] += len(teams[team]['acquired_cards'])
+		print('Team ' + str(team) + " acquired: " + str(teams[team]['acquired_cards']))
+		print('Team ' + str(team) + " current score: " + str(teams[team]['score']))
+
+		teams[team]['acquired_cards'] = []
+
+	current_stage = "round ended"
+	print('Round Ended!')
+
 class EndRoundHandler(BaseHandler):
 	def get(self):
-		global teams
-		global current_stage
+		endRound()
 
-		for team in teams:
-			teams[team]['score'] += len(teams[team]['acquired_cards'])
-			print('Team ' + str(team) + " acquired: " + str(teams[team]['acquired_cards']))
-			print('Team ' + str(team) + " current score: " + str(teams[team]['score']))
-
-			teams[team]['acquired_cards'] = []
-
-		current_stage = "round ended"
-
-		print('Round Ended!')
 		self.write(json.dumps({'status': 'success',
 								   'message': 'Round ended.'}))
 
@@ -266,8 +269,7 @@ class EndTurnHandler(BaseHandler):
 		if len(deck) > 0:
 			current_stage = "round started"
 		else:
-			#end round
-			pass
+			endRound()
 
 		print('End Turn')
 		print("Next player is " + str(teams[current_team]['members'][current_player]))
