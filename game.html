@@ -164,7 +164,7 @@ var timer_call_function = null;
 var last_stage = "";
 
 function makeRequest(url, type, input_data, callback_function) {
-	var api_base_url = 'http://localhost:5000/'
+	var api_base_url = 'http://timesup-titlerecall.herokuapp.com:5000/'
 
 	if (type == 'POST') {
 		$.post(api_base_url + url, input_data, function(data){
