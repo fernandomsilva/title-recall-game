@@ -531,13 +531,16 @@ function callback_populateGameStateDiv(data) {
 
 	if (current_stage == "round ended") {
 		if (last_stage != current_stage) {
-			$('#teamscore_table').append("<tr>")
+			//$('#teamscore_table').append("<tr>")
+			var new_element = "<tr>"
 
 			for (team_index in teams) {
-				$('#teamscore_table').append("<td>" + teams[team_index]["score"].toString() + "</td>");
+				new_element = new_element + "<td>" + teams[team_index]["score"].toString() + "</td>";
+				//$('#teamscore_table').append("<td>" + teams[team_index]["score"].toString() + "</td>");
 			}
 
-			$('#teamscore_table').append("</tr>")
+			new_element = new_element + "</tr>";
+			$('#teamscore_table').append(new_element);
 		}
 	}
 
@@ -569,6 +572,7 @@ function callback_populateGameStateDiv(data) {
 	}
 
 	for (var i=0; i<number_of_members; i++) {
+		// FIX THE TABLE VIEW
 		$('#team_table').append("<tr>");
 		for (var j=0; j<Object.keys(teams).length; j++) {
 			if (teams[j.toString()]['members'].length >= i) {
