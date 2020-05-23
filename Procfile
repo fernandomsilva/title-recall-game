@@ -1,1 +1,1 @@
-web: python2.7 tornadoserver.py
+web: python tornadoserver.py
