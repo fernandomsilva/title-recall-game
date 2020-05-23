@@ -309,11 +309,15 @@ class GameStateHandler(BaseHandler):
 		self.write(json.dumps({'status': 'success',
 								   'message': 'Waiting for all players to be ready.'}))
 
+class HomeHandler(tornado.web.RequestHandler):
+	def get(self):
+		self.render("game.html")
+
 def make_app():
 	file_root = os.path.dirname(__file__)
 
 	return tornado.web.Application([
-		(r"/", BaseHandler),
+		(r"/", HomeHandler),
 		(r"/generateroom", RoomGenerationHandler),
 		(r"/joinroom", JoinRoomHandler),
 		(r"/submitdeck", SubmitDeckHandler),
