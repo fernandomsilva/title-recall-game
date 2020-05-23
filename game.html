@@ -434,6 +434,9 @@ function timerRun() {
 function acquiredCards() {
 	//$('#viewedcards_textarea').attr("style", "display:block");
 	//$('#acquiredcards_textarea').attr("style", "display:block");
+	//$('#correctguesses_table').empty();
+	$('#viewedcards_textarea').empty();
+	$('#acquiredcards_textarea').empty();
 	$('#correctguesses_table').attr("style", "display:block; width: 700px;");
 
 	for (card in viewed_cards) {
@@ -494,6 +497,7 @@ $('#submitAcquiredCards_button').click(function() {
 function endTurn(correct_cards) {
 	$('#correctguesses_table').attr("style", "display:none; width: 700px;");
 	makeRequest('endturn', 'POST', '{"correct": ' + JSON.stringify(correct_cards) + '}', callback_endTurn);
+	deck = {};
 }
 
 function callback_endTurn(data) {
