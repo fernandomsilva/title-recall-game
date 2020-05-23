@@ -28,6 +28,33 @@ class BaseHandler(tornado.web.RequestHandler):
 		json_obj = json.loads(self.request.body)
 		self.write(str(json_obj))
 
+class ResetHandler(BaseHandler):
+	def get(self):
+		global room_code
+		global players
+		global isRoomOpen
+		global player_list
+		global ready_player_list
+		global teams
+		global current_player
+		global current_team
+		global current_stage
+		global deck
+
+		room_code = None
+		players = {}
+		isRoomOpen = False
+		player_list = []
+		ready_player_list = []
+		teams = {}
+		current_player = None
+		current_team = None
+		current_stage = None
+		deck = []
+
+		self.write(json.dumps({'status': 'success',
+							   'message': 'Game reseted.'}))
+
 class RoomGenerationHandler(BaseHandler):
 	def get(self):
 		global room_code
@@ -318,6 +345,7 @@ def make_app():
 
 	return tornado.web.Application([
 		(r"/", HomeHandler),
+		(r"/reset", ResetHandler),
 		(r"/generateroom", RoomGenerationHandler),
 		(r"/joinroom", JoinRoomHandler),
 		(r"/submitdeck", SubmitDeckHandler),
@@ -344,7 +372,6 @@ if __name__ == "__main__":
 	current_team = None
 	current_stage = None
 	deck = []
-
 
 	app = make_app()
 	#app.listen(8888)
