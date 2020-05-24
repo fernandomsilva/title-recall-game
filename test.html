@@ -12,6 +12,16 @@
 				color: white;
 				vertical-align: middle;
 			}
+			.card_category {
+				position: absolute;
+				top: 80%;
+				left: 50%;
+				font-size: 30px;
+				color: blue;
+				border: 2px solid black;
+				vertical-align: right;
+				background-color: #ebd534;
+			}
 			.game_view {
 				position: relative;
 				width: 700px;
@@ -42,74 +52,13 @@
 		</style>
 	</head>
 	<body>
-		<table id="correctguesses_table" name="correctguesses_table" style="width: 700px;">
-			<tr>
-				<td><label>Viewed Cards</label></td>
-				<td><label>Correct Guesses</label></td>
-			</tr>
-			<tr>
-				<td>
-					<div id="viewedcards_textarea" name="viewedcards_textarea" class="viewedcards_block">
-						<span id="card_Jurassic_Park" name="card_Jurassic_Park" class="clickable_card">Jurassic Park</span>
-						<span id="card_Matrix" name="card_Matrix" class="clickable_card">Matrix</span>
-						<span id="card_Wall-E" name="card_Wall-E" class="clickable_card">Wall-E</span>
-					</div>
-				</td>
-				<td>
-					<div id="acquiredcards_textarea" name="acquiredcards_textarea" class="viewedcards_block">
-						<span id="card_Space_Jam" name="card_Space_Jam" class="clickable_card">Space Jam</span>
-						<span id="card_Space_Jam" name="card_Space_Jam" class="clickable_card">Harry Potter and The Prisoner of Azkabam</span>
-					</div>
-				</td>
-			</tr>
-			<tr>
-				<td><button id="submitAcquiredCards_button" name="submitAcquiredCards_button">Submit</button></td>
-			</tr>
-		</table>
-
+		<div id="gameview_div" name="gameview_div" class="game_view" style="display: block;">
+			<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
+			<span id="timer_span" name="timer_span" class="timer">00:00</span>
+			<span id="cardcategory_span" name="cardcategory_span" class="card_category"></span>
+		</div>
+		<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn" style="display: block;">Click for next card</button>
 	</body>
 	<script>
-		function cardDoubleClick(element) {
-			console.log(element);
-
-			var current_div_id = element.parent().attr('id');
-			var new_div_id = '';
-			var title = element.text();
-			var title_parsed = (element.text()).replace(/ /g, "_");
-
-		    $("#" + current_div_id).find(element).remove();
-
-		    if (current_div_id.includes("viewedcards")) {
-		    	new_div_id = 'acquiredcards_textarea';
-		    }
-		    else {
-		    	new_div_id = 'viewedcards_textarea';    	
-		    }
-
-		    $('#' + new_div_id).append('<span id="card_' + title_parsed + '" name="card_' + title_parsed + '" class="clickable_card">' + title + '</span>');
-
-		    var list_of_spans = $('#acquiredcards_textarea').find('span');
-		    var list_of_titles = [];
-
-		    $.each(list_of_spans, function(key, value) {
-		    	list_of_titles.push($(value).text());
-		    });
-
-		    var correct_cards = []
-		    for (card in deck) {
-		    	if (list_of_titles.includes(card['title'])) {
-		    		correct_cards.push(card);
-		    	}
-		    }
-
-		    console.log(list_of_titles);
-		}
-		$('#acquiredcards_textarea').on('dblclick', 'span.clickable_card', function() {
-			cardDoubleClick($(this));
-		});
-		$('#viewedcards_textarea').on('dblclick', 'span.clickable_card', function() {
-			cardDoubleClick($(this));
-		});
-
 	</script>
 </html>
