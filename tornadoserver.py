@@ -52,6 +52,9 @@ class ResetHandler(BaseHandler):
 		current_stage = None
 		deck = []
 
+		print('=============')
+		print('Game reseted.')
+		print('=============')
 		self.write(json.dumps({'status': 'success',
 							   'message': 'Game reseted.'}))
 
@@ -132,7 +135,8 @@ class StartGameHandler(BaseHandler):
 					not_ready_players.append(key)
 
 			if len(not_ready_players) > 0:
-				self.write("Players not ready: " + str(not_ready_players))
+				self.write(json.dumps({'status': 'failure',
+									   'message': 'Players not ready: ' + str(not_ready_players)}))
 			else:
 				isRoomOpen = False
 
@@ -161,17 +165,21 @@ class StartGameHandler(BaseHandler):
 
 				current_stage = "game start"
 
-				for key in teams:
-					self.write('Team ' + str(key) + ": " + str(teams[key]['members']))
-				self.write('First Clue giver: ' + str(teams[current_team]['members'][current_player]))
-
+				#for key in teams:
+				#	self.write('Team ' + str(key) + ": " + str(teams[key]['members']))
+				#self.write('First Clue giver: ' + str(teams[current_team]['members'][current_player]))
+				self.write(json.dumps({'status': 'success',
+								   		'message': 'Game started.'}))
 		else:
 			if len(players) <= 3:
 				print('Cannot start game with less than 3 players')
-				self.write('Game cannot be started with less than 3 players.')
+				self.write(json.dumps({'status': 'fail',
+									   'message': 'Game cannot be started with less than 3 players.'}))
+
 			else:
 				print('Game is not ready to start')
-				self.write('There is no game ready to start.')
+				self.write(json.dumps({'status': 'fail',
+									   'message': 'There is no game ready to start.'}))
 
 class ListCurrentPlayersHandler(BaseHandler):
 	def get(self):
@@ -338,13 +346,18 @@ class GameStateHandler(BaseHandler):
 
 class HomeHandler(tornado.web.RequestHandler):
 	def get(self):
-		self.render("game.html")
+		self.render("game.html", data=json.dumps({}))
+
+class AdminHandler(tornado.web.RequestHandler):
+	def get(self):
+		self.render("game.html", data=json.dumps({"auth": "admin"}))
 
 def make_app():
 	file_root = os.path.dirname(__file__)
 
 	return tornado.web.Application([
 		(r"/", HomeHandler),
+		(r"/admin", AdminHandler),
 		(r"/reset", ResetHandler),
 		(r"/generateroom", RoomGenerationHandler),
 		(r"/joinroom", JoinRoomHandler),

@@ -58,6 +58,11 @@
 		</style>
 	</head>
 	<body>
+		<div id="roomconfig_div" name="roomconfig_div" style="display: none; visibility: none;">
+			<table id="configparameters_table" name="configparameters_table">
+			</table>
+			<button id="generateroom_button" name="generateroom_button">Generate Room</button>
+		</div>
 		<div id="joinroom_div" name="joinroom_div">
 			<label for="nickname_text">Nickname:</label>
 			<input type="text" id="nickname_text" name="nickname_text"></input> 
@@ -100,6 +105,7 @@
 					<th><b>Ready</b></th>
 				</tr>
 			</table>
+			<button id="startgame_button" name="startgame_button" style="display: none; visibility: hidden;">Start Game</button>
 		</div>
 		<div id="gamestate_div" name="gamestate_div" style="display: none; visibility: hidden;">
 			<table id="correctguesses_table" name="correctguesses_table" style="width: 700px; display: none">
@@ -126,7 +132,7 @@
 				<span id="cardname_span" name="cardname_span" class="card_name">Card name will show up here</span>
 				<span id="timer_span" name="timer_span" class="timer">00:00</span>
 			</div>
-			<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn" style="display: none;">Double click for next card</button>
+			<button type="button" id="nextcard_button" name="nextcard_button" class="next_card_btn" style="display: none;">Click for next card</button>
 			<table id="teamscore_table" name="teamscore_table">
 				<tr>
 					<th><b>Score T1</b></th>
@@ -140,6 +146,7 @@
 				</tr>
 			</table>
 			<button type="button" id="readytoplay_button" name="readytoplay_button" style="display: none;">Ready</button>
+			<button type="button" id="startround_button" name="startround_button" style="display: none;" disabled>Start Round</button>
 			<button type="button" id="startturn_button" name="startturn_button" style="display: none;" disabled>Start Turn</button>
 			<table id="teamcards_table" name="teamcards_table">
 				<tr>
@@ -162,9 +169,12 @@ var MAX_CARDS_PER_PLAYER = 7;
 var const_call_function = null;
 var timer_call_function = null;
 var last_stage = "";
+var authorization = {% raw data %};
+var admin = false;
 
 function makeRequest(url, type, input_data, callback_function) {
 	var api_base_url = 'http://timesup-titlerecall.herokuapp.com/'
+	//var api_base_url = 'http://localhost:5000/'
 
 	if (type == 'POST') {
 		$.post(api_base_url + url, input_data, function(data){
@@ -184,6 +194,31 @@ function makeRequest(url, type, input_data, callback_function) {
 	}
 }
 
+if ("auth" in authorization) {
+	if (authorization["auth"] === "admin") {
+		admin = true;
+		$('#roomconfig_div').attr('style', 'display: block; visibility: visible;');
+	}
+}
+
+$('#generateroom_button').click(function() {
+	var generate_room_flag = confirm('Are you sure you want to generate a new room? (If there is an active room, it will be closed)');
+	if (generate_room_flag == true) {
+		generateRoom();
+	}
+})
+
+function generateRoom() {
+	makeRequest('reset', "GET", '{}', callback_resettogenerateroom);
+}
+
+function callback_resettogenerateroom(data) {
+	makeRequest('generateroom', "GET", '{}', callback_generateroom);
+}
+
+function callback_generateroom(data) {
+}
+
 $('#joinroom_button').click(function() {
 	var nickname_text = $('#nickname_text').val();
 	//console.log('nickname_text: ' + nickname_text);
@@ -192,6 +227,7 @@ $('#joinroom_button').click(function() {
 		alert('You must select a nickname.');
 	}
 	else {
+		$('#roomconfig_div').attr('style', 'display: none; visibility: none;');
 		$('#joinroom_button').attr('disabled', true);
 		$('#nickname_text').attr('disabled', true);
 		my_nick = nickname_text;
@@ -305,6 +341,9 @@ function callback_submitDeck(data) {
 		alert(message);
 
 		$('#listplayers_div').attr('style', 'display: block; visibility: visible;');
+		if (admin) {
+			$('#startgame_button').attr('style', 'display: block; visibility: visible;');
+		}
 		populateListOfPlayersDiv();
 		const_call_function = window.setInterval(populateListOfPlayersDiv, 5000);
 	}
@@ -327,6 +366,21 @@ function updateDeckTextArea(unselect) {
 	}
 }
 
+$('#startgame_button').click(function() {
+	makeRequest('startgame', "GET", '{}', callback_startGame);
+});
+
+function callback_startGame(data) {
+	var status = data['status'];
+	var message = data['message'];
+
+	alert(message);	
+
+	if (status == 'success') {
+		$('#startgame_button').attr('disabled', true);
+	}
+}
+
 function populateListOfPlayersDiv() {
 	makeRequest('listplayers', "GET", '{}', callback_populateListOfPlayersDiv);
 }
@@ -345,6 +399,9 @@ function callback_populateListOfPlayersDiv(data) {
 			$('#listplayers_div').attr('disabled', true);
 			$('#listplayers_div').attr('display', 'none');
 			$('#listplayers_div').hide();
+			if (admin) {
+				$('#startgame_button').attr('style', 'display: none; visibility: none;');
+			}
 
 			$('#gamestate_div').attr('style', 'display: block; visibility: visible;');
 
@@ -372,6 +429,28 @@ function readyToPlay(nickname) {
 function callback_readyToPlay(data) {
 }
 
+$('#startround_button').click(function() {
+	//$('#startround_button').attr('disabled', true);
+	//$('#startround_button').attr('style', 'display: none;');
+	startRound();
+});
+
+function startRound() {
+	makeRequest('startround', "GET", '{}', callback_startRound);	
+}
+
+function callback_startRound(data) {
+	var status = data['status'];
+	var message = data['message'];
+
+	alert(message);
+
+	if (status == 'success') {
+		$('#startround_button').attr('disabled', true);
+		$('#startround_button').attr('style', 'display: none;');
+	}
+}
+
 $('#startturn_button').click(function() {
 	$('#startturn_button').attr('disabled', true);
 	$('#startturn_button').attr('style', 'display: none;');
@@ -396,7 +475,8 @@ function callback_startTurn(data) {
 	timer_call_function = window.setInterval(timerRun, 1000);
 }
 
-$('#nextcard_button').dblclick(function() {
+//$('#nextcard_button').dblclick(function() {
+$('#nextcard_button').click(function() {
 	var index = viewed_cards.length;
 	
 	if (index < deck.length) {
@@ -405,7 +485,8 @@ $('#nextcard_button').dblclick(function() {
 		$('#cardname_span').text(deck[index]['title']);
 	}
 	else {
-		$('#cardname_span').text("--- Deck Empty ---");	
+		$('#cardname_span').text("--- Deck Empty ---");
+		timer_value = 2;
 	}
 });
 
@@ -464,11 +545,13 @@ function cardDoubleClick(element) {
     $('#' + new_div_id).append('<span id="card_' + title_parsed + '" name="card_' + title_parsed + '" class="clickable_card">' + title + '</span>');
 }
 
-$('#acquiredcards_textarea').on('dblclick', 'span.clickable_card', function() {
+//$('#acquiredcards_textarea').on('dblclick', 'span.clickable_card', function() {
+$('#acquiredcards_textarea').on('click', 'span.clickable_card', function() {
 	cardDoubleClick($(this));
 });
 
-$('#viewedcards_textarea').on('dblclick', 'span.clickable_card', function() {
+//$('#viewedcards_textarea').on('dblclick', 'span.clickable_card', function() {
+$('#viewedcards_textarea').on('click', 'span.clickable_card', function() {
 	cardDoubleClick($(this));
 });
 
@@ -522,6 +605,13 @@ function callback_populateGameStateDiv(data) {
 
 	var number_of_members = 0;
 	var number_of_cards = 0
+
+	if (admin) {
+		if (current_stage == "game start" || current_stage == "round ended") {
+			$('#startround_button').attr('disabled', false);
+			$('#startround_button').attr('style', 'display: block;');
+		}		
+	}
 
 	$('#team_table').empty();
 	$('#team_table').append("<tr><th><b>Team 1</b></th><th><b>Team 2</b></th></tr>");
