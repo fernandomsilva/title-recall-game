@@ -306,6 +306,8 @@ class EndTurnHandler(BaseHandler):
 		else:
 			endRound()
 
+		ready_player_list = [];
+
 		print('End Turn')
 		print("Next player is " + str(teams[current_team]['members'][current_player]))
 		print("Cards left in the deck: " + str(len(deck)))
