@@ -285,6 +285,7 @@ class EndTurnHandler(BaseHandler):
 		global current_team
 		global current_player
 		global current_stage
+		global ready_player_list
 		global deck
 
 		json_obj = json.loads(self.request.body)
