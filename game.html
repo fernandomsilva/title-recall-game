@@ -1,6 +1,8 @@
 <html>
 	<head>
+		<script src="data/en.card.data.js"></script>
 		<script src="jquery-3.3.1.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 		<script src="https://kit.fontawesome.com/a26119ff4e.js" crossorigin="anonymous"></script>
 		<style>
 			.card_selected {
@@ -91,6 +93,7 @@
 			<input type="text" id="new_card_text" name="new_card_text">
 			<button type="button" id="addcard_button" name="addcard_button"><i class="fas fa-plus-circle"></i></button>
 			<button type="button" id="removecard_button" name="removecard_button"><i class="fas fa-minus-square"></i></button>
+			<button type="button" id="randomizecards_button" name="randomizecards_button"><i class="fas fa-random"></i></button>
 
 			<br>
 
@@ -116,6 +119,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card1_randomize_button" name="card1_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line2" name="decklist_textarea_line1" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -137,6 +141,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card2_randomize_button" name="card2_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line3" name="decklist_textarea_line3" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -158,6 +163,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card3_randomize_button" name="card3_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line4" name="decklist_textarea_line4" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -179,6 +185,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card4_randomize_button" name="card4_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line5" name="decklist_textarea_line5" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -200,6 +207,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card5_randomize_button" name="card5_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line6" name="decklist_textarea_line6" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -221,6 +229,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card6_randomize_button" name="card6_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 					<tr>
 						<td><span id="decklist_textarea_line7" name="decklist_textarea_line7" class="decklist_textarea_line" style="display: block;"></span></td>
@@ -242,6 +251,7 @@
 								<option value="TV Show">TV Show</option>
 							</select>
 						</td>
+						<td><button type="button" id="card7_randomize_button" name="card7_randomize_button" class="single_card_randomize"><i class="fas fa-random"></i></button></td>
 					</tr>
 
 				</table>
@@ -324,8 +334,10 @@ var MAX_CARDS_PER_PLAYER = 7;
 var const_call_function = null;
 var timer_call_function = null;
 var last_stage = "";
-var authorization = {% raw data %};
+//var authorization = {% raw data %};
+var authorization = {};
 var admin = false;
+
 
 for (var i=0; i<MAX_CARDS_PER_PLAYER; i++) {
 	list_of_categories.push("");
@@ -417,6 +429,9 @@ function callback_joinRoom(data) {
 		alert(message);
 
 		$('#submitdeck_div').attr('style', 'display: block; visibility: visible;');
+
+		Cookies.set("nickname", my_nick);
+		Cookies.set("current_state", "joined room");
 	}
 }
 
@@ -452,6 +467,16 @@ $('#removecard_button').click(function() {
 		for (var j=0; j<list_of_cards.length; j++) {
 			if (cards_to_remove[i] === list_of_cards[j]){
 				list_of_cards.splice(j, 1);
+
+				for (var k=j; k<list_of_categories.length; k++) {
+					if (k < MAX_CARDS_PER_PLAYER-1) {
+						list_of_categories[k] = list_of_categories[k+1];
+					}
+					else {
+						list_of_categories[k] = "";
+					}
+				}
+
 				break;
 			}
 		}
@@ -465,6 +490,43 @@ $('.card_categories').change(function() {
 
 	list_of_categories[index] = $(this).val();
 	//console.log(list_of_categories);
+});
+
+$('#randomizecards_button').click(function() {
+	if (list_of_cards.length < MAX_CARDS_PER_PLAYER) {
+		for (var i=list_of_cards.length; i<MAX_CARDS_PER_PLAYER; i++) {
+			var keys = Object.keys(carddata);
+			var selected_key = keys[Math.floor(Math.random() * keys.length)];
+
+			var card = carddata[selected_key][Math.floor(Math.random() * carddata[selected_key].length)];
+
+			list_of_cards.push(card['title']);
+			list_of_categories[i] = card['category'];
+		}
+
+		updateDeckTextArea(true);
+	}
+})
+
+$('.single_card_randomize').click(function() {
+	var index = parseInt($(this).attr('id')[4]) - 1;
+
+	category = list_of_categories[index];
+
+	if (category != '') {
+		card = carddata[category][Math.floor(Math.random() * carddata[category].length)];
+
+		if (list_of_cards.length > index) {
+			list_of_cards[index] = card['title'];
+		}
+		else {
+			len = list_of_cards.length;
+			list_of_cards.push(card['title']);
+			list_of_categories[len] = card['category'];
+		}
+
+		updateDeckTextArea(true);
+	}
 });
 
 $('#submitdeck_button').click(function(){
@@ -510,6 +572,9 @@ function callback_submitDeck(data) {
 		if (admin) {
 			$('#startgame_button').attr('style', 'display: block; visibility: visible;');
 		}
+
+		Cookies.set("current_state", "start game");
+
 		populateListOfPlayersDiv();
 		const_call_function = window.setInterval(populateListOfPlayersDiv, 5000);
 	}
@@ -525,11 +590,13 @@ function updateDeckTextArea(unselect) {
 		if (unselect) {
 			$('#decklist_textarea_line' + i).toggleClass('card_selected', false);
 		}
+		$('#card' + i + '_categories').val(list_of_categories[i-1]);
 	}
 	for (var j=list_of_cards.length+1; j<=MAX_CARDS_PER_PLAYER; j++) {
 		$('#decklist_textarea_line' + j).text("");
 		$('#decklist_textarea_line' + j).toggleClass('card_selected', false);
 		$('#card' + j + '_categories').val("");
+		list_of_categories[j-1] = "";
 	}
 }
 
@@ -545,6 +612,7 @@ function callback_startGame(data) {
 
 	if (status == 'success') {
 		$('#startgame_button').attr('disabled', true);
+		Cookies.set("current_state", "game started");
 	}
 }
 

@@ -200,6 +200,34 @@ class ListCurrentPlayersHandler(BaseHandler):
 
 		self.write(json.dumps(result))
 
+class KickPlayerHandler(BaseHandler):
+	def post(self):
+		global players
+		global player_list
+		global ready_player_list
+		global teams
+		global current_team
+		global current_player
+
+		json_obj = json.loads(self.request.body)
+		player_to_kick = json_obj["player"]
+
+		for team in teams:
+			if player_to_kick in teams[team]['members']:
+				teams[team]['members'].remove(player_to_kick)
+				break
+
+		if player_to_kick == teams[current_team]['members'][current_player]:
+			current_player = (current_player + 1) % (len(teams[current_team]['members']))
+
+		if player_to_kick in player_list:
+			player_list.remove(player_to_kick)
+		if player_to_kick in ready_player_list:
+			ready_player_list.remove(player_to_kick)
+
+		self.write(json.dumps({'status': 'success',
+								   'message': 'Player {} kicked from the game.'.format(player_to_kick)}))
+
 class StartRoundHandler(BaseHandler):
 	def get(self):
 		global players
@@ -367,6 +395,7 @@ def make_app():
 		(r"/submitdeck", SubmitDeckHandler),
 		(r"/startgame", StartGameHandler),
 		(r"/listplayers", ListCurrentPlayersHandler),
+		(r"/kickplayer", KickPlayerHandler),
 		(r"/startround", StartRoundHandler),
 		(r"/endround", EndRoundHandler),
 		(r"/startturn", StartTurnHandler),
