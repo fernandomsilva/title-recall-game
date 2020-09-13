@@ -172,9 +172,9 @@ class StartGameHandler(BaseHandler):
 								   		'message': 'Game started.'}))
 		else:
 			if len(players) <= 3:
-				print('Cannot start game with less than 3 players')
+				print('Cannot start game with less than 4 players')
 				self.write(json.dumps({'status': 'fail',
-									   'message': 'Game cannot be started with less than 3 players.'}))
+									   'message': 'Game cannot be started with less than 4 players.'}))
 
 			else:
 				print('Game is not ready to start')
@@ -217,8 +217,12 @@ class KickPlayerHandler(BaseHandler):
 				teams[team]['members'].remove(player_to_kick)
 				break
 
-		if player_to_kick == teams[current_team]['members'][current_player]:
-			current_player = (current_player + 1) % (len(teams[current_team]['members']))
+		if teams != {}:
+			if player_to_kick == teams[current_team]['members'][current_player]:
+				current_player = (current_player + 1) % (len(teams[current_team]['members']))
+
+		if player_to_kick in players:
+			del players[player_to_kick]
 
 		if player_to_kick in player_list:
 			player_list.remove(player_to_kick)
